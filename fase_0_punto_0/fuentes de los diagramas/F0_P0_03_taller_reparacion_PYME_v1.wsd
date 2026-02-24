@@ -1,0 +1,95 @@
+@startuml
+title Reparación y Gestión de Taller - PYME (Comercial/Servicio Técnico) (BPMN con carriles)
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor<<Manual>> #FFF2CC
+  BackgroundColor<<Automatica>> #D5E8D4
+  BorderColor Black
+  FontColor Black
+}
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #666666
+}
+
+legend right
+  |= Etiqueta |= Significado |
+  | <back:#FFF2CC>Manual</back> | Actividad con intervención humana |
+  | <back:#D5E8D4>Automática</back> | Actividad ejecutada por sistemas |
+  == Artefactos ==
+  Entrada: Equipo + solicitud de reparación
+  Salidas: Orden cerrada, Equipo reparado (o entregado sin reparar), Notificación al cliente
+  Evidencias: Orden de trabajo, Número de ingreso, Diagnóstico técnico, Cotización, Registro de aceptación/rechazo, Registro de cierre, Acta/constancia de entrega
+end legend
+
+floating note left
+**Punto 0 (ISO - Entregable académico)**
+--
+**Proceso:** Reparación y Gestión de Taller – PYME (Servicio Técnico)
+**Departamentos:** Cliente, Recepción/Ventas, Taller/Soporte Técnico, Sistema de Órdenes (ERP/CRM), Caja/Administración
+**Descripción:** El cliente entrega el equipo. Se registra la orden y se asigna número de ingreso.
+Taller diagnostica y cotiza. Si el cliente rechaza, se entrega sin reparar y se cierra la orden.
+Si acepta, se repara, se prueba, se registra el cierre, se notifica y se entrega el equipo reparado.
+end note
+
+|Recepción / Ventas|
+start
+:Recibir equipo para reparación; <<Manual>>
+note right: Entrada: Equipo + solicitud
+
+|Sistema de Órdenes (ERP/CRM)|
+:Registrar orden de trabajo; <<Automatica>>
+:Asignar número de ingreso; <<Automatica>>
+
+|Taller / Soporte Técnico|
+:Realizar diagnóstico técnico; <<Manual>>
+
+|Sistema de Órdenes (ERP/CRM)|
+:Registrar diagnóstico; <<Automatica>>
+
+|Taller / Soporte Técnico|
+:Elaborar cotización de reparación; <<Manual>>
+
+|Sistema de Órdenes (ERP/CRM)|
+:Registrar cotización; <<Automatica>>
+
+|Recepción / Ventas|
+:Presentar cotización al cliente; <<Manual>>
+
+if (¿Cliente acepta cotización?) then (No)
+  :Registrar rechazo del cliente; <<Manual>>
+  note right
+    **Fin por rechazo**
+    Se entrega el equipo sin reparar y se cierra la orden.
+  end note
+
+  :Entregar equipo sin reparar; <<Manual>>
+
+  |Sistema de Órdenes (ERP/CRM)|
+  :Cerrar orden (sin reparación); <<Automatica>>
+
+  |Recepción / Ventas|
+  stop
+else (Sí)
+  :Registrar aceptación del cliente; <<Manual>>
+  ' (Opcional) Si manejan anticipo/pago, descomenta estas 2 líneas:
+  ' |Caja / Administración|
+  ' :Registrar pago/anticipo (si aplica); <<Manual>>
+
+  |Taller / Soporte Técnico|
+  :Reparar equipo; <<Manual>>
+  :Realizar pruebas de funcionamiento; <<Manual>>
+
+  |Sistema de Órdenes (ERP/CRM)|
+  :Registrar cierre (equipo reparado); <<Automatica>>
+
+  |Recepción / Ventas|
+  :Notificar al cliente; <<Manual>>
+  :Entregar equipo reparado; <<Manual>>
+
+  |Recepción / Ventas|
+  stop
+endif
+
+@enduml

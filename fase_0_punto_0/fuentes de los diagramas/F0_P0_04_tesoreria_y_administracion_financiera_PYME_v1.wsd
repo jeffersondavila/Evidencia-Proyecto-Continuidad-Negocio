@@ -1,0 +1,94 @@
+@startuml
+title Administración Financiera y Tesorería - PYME (Comercial) (BPMN con carriles)
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor<<Manual>> #FFF2CC
+  BackgroundColor<<Automatica>> #D5E8D4
+  BorderColor Black
+  FontColor Black
+}
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #666666
+}
+
+legend right
+  |= Etiqueta |= Significado |
+  | <back:#FFF2CC>Manual</back> | Actividad con intervención humana |
+  | <back:#D5E8D4>Automática</back> | Actividad ejecutada por sistemas |
+  == Artefactos ==
+  Entrada: Información de ventas (FEL/ventas), Extractos bancarios / POS, Facturas de proveedores
+  Salidas: Ingresos conciliados, Pagos ejecutados, Egresos registrados, Reportes financieros, Informe gerencial
+  Evidencias: Asientos contables, Reporte conciliación, Programación de pagos, Aprobación de pagos, Comprobante banca en línea, Registro de egreso, Reportes financieros
+end legend
+
+floating note left
+**Punto 0 (ISO - Entregable académico)**
+--
+**Proceso:** Administración Financiera y Tesorería – PYME (Comercial)
+**Departamentos:** Sistema de Ventas/FEL, Contabilidad/Finanzas, Tesorería, Banca en línea (Banco), Gerencia
+**Descripción:** El sistema recibe información de ventas y genera asientos contables. Se concilian ingresos por medios de pago.
+Se programan pagos a proveedores, se autorizan y se ejecutan por banca en línea; luego se registran egresos.
+Finalmente se generan reportes financieros para análisis gerencial.
+end note
+
+' Carril inicial
+|Sistema de Ventas / FEL|
+start
+:Enviar información de ventas (automática); <<Automatica>>
+note right: Entrada: Información de ventas (FEL/ventas)
+
+|Sistema Financiero / Contable|
+:Registrar contabilidad (ingresos); <<Automatica>>
+:Generar asientos contables (ingresos); <<Automatica>>
+
+|Tesorería|
+:Conciliar ingresos (efectivo / transferencia / tarjeta); <<Manual>>
+note right: Evidencia: Reporte de conciliación
+
+' (Opcional auditor) Si hay diferencias, se corrigen antes de continuar
+if (¿Conciliación sin diferencias?) then (Sí)
+  :Programar pagos a proveedores; <<Manual>>
+else (No)
+  :Identificar diferencias y ajustar registros; <<Manual>>
+  |Sistema Financiero / Contable|
+  :Registrar ajuste contable; <<Automatica>>
+  |Tesorería|
+  :Programar pagos a proveedores; <<Manual>>
+endif
+
+:Solicitar autorización de pagos; <<Manual>>
+
+|Gerencia|
+:Autorizar pagos; <<Manual>>
+
+|Tesorería|
+if (¿Pago autorizado?) then (No)
+  :Registrar pago no autorizado / reprogramar; <<Manual>>
+  note right
+    **Fin por no autorización**
+    El pago se reprograma o se descarta según política interna.
+  end note
+  stop
+else (Sí)
+  :Ejecutar pago en banca en línea; <<Manual>>
+endif
+
+|Banco (Banca en línea)|
+:Confirmar transacción / comprobante; <<Automatica>>
+note right: Evidencia: Comprobante de pago
+
+|Sistema Financiero / Contable|
+:Registrar egreso (asiento contable); <<Automatica>>
+
+|Tesorería|
+:Generar reportes financieros; <<Manual>>
+
+|Gerencia|
+:Analizar resultados (informe gerencial); <<Manual>>
+
+|Tesorería|
+stop
+
+@enduml

@@ -1,0 +1,93 @@
+@startuml
+title Gestión de Inventarios y Bodega - PYME (Comercial) (BPMN con carriles)
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor<<Manual>> #FFF2CC
+  BackgroundColor<<Automatica>> #D5E8D4
+  BorderColor Black
+  FontColor Black
+}
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #666666
+}
+
+legend right
+  |= Etiqueta |= Significado |
+  | <back:#FFF2CC>Manual</back> | Actividad con intervención humana |
+  | <back:#D5E8D4>Automática</back> | Actividad ejecutada por sistemas |
+  == Artefactos ==
+  Entrada 1: Mercadería/Guía/Factura de proveedor
+  Entrada 2: Solicitud de producto (Ventas)
+  Salidas: Inventario actualizado, Producto despachado, Registro de salida
+  Evidencias: Checklist recepción/verificación, Registro de entrada, Kardex/Movimientos, Registro de salida, Notificación a Compras
+end legend
+
+' Nota contextual (Punto 0)
+floating note left
+**Punto 0 (ISO - Entregable académico)**
+--
+**Proceso:** Gestión de Inventarios y Bodega – PYME (Comercial)
+**Departamentos:** Proveedor, Bodega/Inventarios, Sistema de Inventario, Ventas, Compras
+**Descripción:** Se recibe mercadería del proveedor, se valida documentación vs recepción física, y se registra la entrada
+para actualizar inventario. Ventas solicita producto; se valida disponibilidad. Si no hay stock se notifica a Compras para reposición;
+si hay, se despacha el producto y se registra la salida con actualización automática del inventario.
+end note
+
+' Carriles
+|Proveedor|
+start
+:Entregar mercadería a bodega; <<Manual>>
+note right: Entrada 1: Mercadería/Guía/Factura
+
+|Bodega / Inventarios|
+:Recepcionar mercadería; <<Manual>>
+' Control mínimo de recepción (documentos vs físico)
+:Validar documentos vs recepción física; <<Manual>>
+note right
+**Control de recepción**
+Comparar guía/factura vs conteo y estado del producto.
+end note
+:Verificar físicamente productos; <<Manual>>
+
+|Sistema de Inventario|
+:Registrar entrada en sistema; <<Automatica>>
+' Unificación de términos (stock/inventario)
+:Actualizar inventario (entrada); <<Automatica>>
+
+|Bodega / Inventarios|
+:Almacenar en bodega; <<Manual>>
+
+' Segunda parte: solicitud desde Ventas
+|Ventas|
+:Solicitar producto a bodega; <<Manual>>
+note right: Entrada 2: Solicitud de producto (Ventas)
+
+|Sistema de Inventario|
+:Verificar disponibilidad; <<Automatica>>
+
+|Ventas|
+if (¿Producto disponible?) then (No)
+  :Notificar a Compras; <<Manual>>
+  note right
+    **Fin por falta de stock**
+    Se activa reposición mediante Compras.
+  end note
+
+  |Compras|
+  :Gestionar reposición / pedido a proveedor; <<Manual>>
+  stop
+else (Sí)
+  |Bodega / Inventarios|
+  :Despachar físicamente producto; <<Manual>>
+
+  |Sistema de Inventario|
+  :Registrar salida en sistema; <<Automatica>>
+  :Actualizar inventario (salida); <<Automatica>>
+
+  |Bodega / Inventarios|
+  stop
+endif
+
+@enduml

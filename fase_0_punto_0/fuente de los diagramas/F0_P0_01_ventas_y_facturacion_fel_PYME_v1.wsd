@@ -1,0 +1,104 @@
+@startuml
+' El título siempre primero, fuera del flujo
+title Ventas y Facturación Electrónica (FEL) - PYME (Comercial) (BPMN con carriles)
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor<<Manual>> #FFF2CC
+  BackgroundColor<<Automatica>> #D5E8D4
+  BorderColor Black
+  FontColor Black
+}
+
+skinparam note {
+  BackgroundColor #F5F5F5
+  BorderColor #666666
+}
+
+legend right
+  |= Etiqueta |= Significado |
+  | <back:#FFF2CC>Manual</back> | Actividad con intervención humana |
+  | <back:#D5E8D4>Automática</back> | Actividad ejecutada por sistemas |
+  == Artefactos ==
+  Entrada: Solicitud/Cotización
+  Salidas: FEL aprobada, Inventario actualizado, Asiento contable
+  Evidencias: Acuse SAT, Log de error, Registro de venta, Registro contable
+end legend
+
+' Primer carril antes del start
+|Ventas|
+start
+
+' Nota contextual (Punto 0)
+floating note left
+**Punto 0 (ISO - Entregable académico)**
+--
+**Proceso:** Ventas y Facturación Electrónica (FEL) – PYME (Comercial)
+**Departamentos:** Ventas, Sistema de Inventario, Sistema de Facturación (FEL), SAT/Proveedor autorizado, Contabilidad
+**Descripción:** El proceso inicia con la solicitud/cotización del cliente. Ventas consulta disponibilidad.
+Si hay stock, se registra la venta, se genera FEL y se envía a SAT para validación.
+Si SAT rechaza, se corrigen datos y se reenvía hasta aprobación. Con aprobación, se envía la factura al cliente,
+se actualiza inventario y se registra el asiento contable.
+end note
+
+' En PYME suele ser Ventas quien recibe la solicitud del cliente
+:Recibir solicitud/cotización del cliente; <<Manual>>
+note right: Entrada: Solicitud/Cotización
+
+:Registrar solicitud; <<Manual>>
+:Consultar disponibilidad; <<Manual>>
+
+|Sistema de Inventario|
+:Verificar disponibilidad; <<Automatica>>
+
+|Ventas|
+if (¿Producto disponible?) then (No)
+  :Informar al cliente; <<Manual>>
+  :Crear solicitud de pedido; <<Manual>>
+  note right
+    **Fin por no disponibilidad**
+    Se gestiona reposición por el proceso de Compras (fuera de alcance de este diagrama).
+  end note
+  stop
+else (Sí)
+  :Registrar venta en el sistema; <<Manual>>
+
+  |Sistema de Facturacion (FEL)|
+  :Generar FEL; <<Automatica>>
+  :Enviar FEL a SAT; <<Automatica>>
+
+  |SAT / Proveedor autorizado|
+  :Validar FEL; <<Automatica>>
+
+  |Sistema de Facturacion (FEL)|
+  while (¿Validación aprobada?) is (Error/Rechazada)
+    :Registrar error; <<Automatica>>
+
+    |Ventas|
+    :Corregir datos (Ventas/TI según error); <<Manual>>
+
+    |Sistema de Facturacion (FEL)|
+    :Reenviar a validación; <<Automatica>>
+
+    |SAT / Proveedor autorizado|
+    :Validar FEL; <<Automatica>>
+  endwhile (Aprobada)
+
+  |Sistema de Facturacion (FEL)|
+  ' Si es automática, el término correcto suele ser "Enviar"
+  :Enviar factura al cliente; <<Automatica>>
+
+  ' Paralelo para inventario y contabilidad tras aprobación
+  fork
+    |Sistema de Inventario|
+    :Actualizar inventario; <<Automatica>>
+  fork again
+    |Contabilidad|
+    :Registrar asiento contable; <<Automatica>>
+  end fork
+
+  |Ventas|
+  stop
+endif
+
+@enduml
